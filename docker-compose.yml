@@ -1,0 +1,12 @@
+services:
+  mcp:
+    build: .
+    container_name: mcp-server
+    restart: unless-stopped
+    env_file: .env
+    # Not published to the host: the tunnel reaches it over the compose network.
+    # Uncomment to also expose it on the LAN for local testing:
+    # ports:
+    #   - "8000:8000"
+    expose:
+      - "8000"
