@@ -183,9 +183,9 @@ mod tests {
     async fn json_gate_output_yields_verify() {
         // mock returns the JSON blob for BOTH draft and gate calls; the gate
         // parse succeeds with confidence 85 >= 60 -> verify.
-        std::env::set_var("MOCK_MODE", "json");
+        unsafe {std::env::set_var("MOCK_MODE", "json")};
         let v = run_draft_pipeline(&test_cfg("verify"), "some task", None).await;
-        std::env::remove_var("MOCK_MODE");
+        unsafe {std::env::remove_var("MOCK_MODE")};
         assert_eq!(v["decision"], "verify");
         assert_eq!(v["confidence"], 85);
         assert!(v["draft_id"].as_str().unwrap().contains('-'));
@@ -195,9 +195,9 @@ mod tests {
     #[tokio::test]
     async fn unparseable_gate_fails_open_to_discard() {
         // mock returns "mock output" -> gate parse fails -> discard with error.
-        std::env::set_var("MOCK_MODE", "ok");
+        unsafe {std::env::set_var("MOCK_MODE", "ok")};
         let v = run_draft_pipeline(&test_cfg("discard"), "some task", None).await;
-        std::env::remove_var("MOCK_MODE");
+        unsafe {std::env::remove_var("MOCK_MODE")};
         assert_eq!(v["decision"], "discard");
         assert!(v["error"].as_str().unwrap().contains("unparseable"));
     }

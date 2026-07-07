@@ -1,1 +1,14 @@
-server/target/*
+# Rust build artifacts
+server/target/
+
+# Cargo lock is committed for binaries, so no need to ignore it
+
+# Local telemetry (if you ever point DSPEC_DATA_DIR at the repo)
+*.jsonl
+!server/tests/**/*.jsonl
+
+# Editor / OS noise
+.DS_Store
+*.swp
+.idea/
+.vscode/
