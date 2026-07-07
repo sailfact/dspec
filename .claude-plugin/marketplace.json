@@ -1,0 +1,7 @@
+{
+  "name": "dspec-local",
+  "owner": { "name": "sailfact" },
+  "plugins": [
+    { "name": "dspec", "source": "./" }
+  ]
+}

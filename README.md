@@ -143,7 +143,7 @@ All configuration is via environment variables set in the plugin manifest's MCP 
 
 | Variable | Default | Meaning |
 |---|---|---|
-| `DSPEC_DRAFT_MODEL` | `haiku` | Model alias passed to `claude --model` for drafting |
+| `DSPEC_DRAFT_MODEL` | `sonnet` | Model alias passed to `claude --model` for drafting |
 | `DSPEC_GATE_MODEL` | `haiku` | Model for the gate pass |
 | `DSPEC_THRESHOLD` | `60` | Minimum confidence (inclusive) to reach verification |
 | `DSPEC_TIMEOUT_SECS` | `120` | Per-subprocess timeout, in seconds |

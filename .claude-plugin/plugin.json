@@ -7,6 +7,8 @@
     "dspec": {
       "command": "${CLAUDE_PLUGIN_ROOT}/server/target/release/dspec-server",
       "env": {
+        "DSPEC_DRAFT_MODEL": "sonnet",
+        "DSPEC_GATE_MODEL": "haiku",
         "DSPEC_THRESHOLD": "60"
       }
     }
