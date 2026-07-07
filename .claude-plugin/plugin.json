@@ -1,1 +1,14 @@
-
+{
+  "name": "dspec",
+  "version": "0.1.0",
+  "description": "DSPEC speculative draft-then-verify: cheap model drafts, an independent gate scores, the target model verifies only surviving drafts. Approximate, not lossless.",
+  "author": { "name": "Ross M Curley" },
+  "mcpServers": {
+    "dspec": {
+      "command": "${CLAUDE_PLUGIN_ROOT}/server/target/release/dspec-server",
+      "env": {
+        "DSPEC_THRESHOLD": "60"
+      }
+    }
+  }
+}
