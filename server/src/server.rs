@@ -3,8 +3,10 @@ use crate::config::Config;
 use crate::gate::{decide, parse_gate_output, Decision};
 use crate::prompts::{drafter_prompt, gate_prompt};
 use crate::telemetry::{append, stats, Event};
+use rmcp::handler::server::router::tool::ToolRouter;
 use rmcp::handler::server::wrapper::Parameters;
-use rmcp::{tool, tool_router};
+use rmcp::model::{ServerCapabilities, ServerInfo};
+use rmcp::{tool, tool_handler, tool_router, ServerHandler};
 use schemars::JsonSchema;
 use serde::Deserialize;
 use serde_json::json;
@@ -98,6 +100,7 @@ pub async fn run_draft_pipeline(cfg: &Config, task: &str, context: Option<&str>)
 #[derive(Clone)]
 pub struct DspecServer {
     pub cfg: Config,
+    tool_router: ToolRouter<Self>,
 }
 
 #[derive(Debug, Deserialize, JsonSchema)]
@@ -118,8 +121,12 @@ pub struct RecordOutcomeParams {
     pub patch_ratio: Option<f32>,
 }
 
-#[tool_router(server_handler)]
+#[tool_router]
 impl DspecServer {
+    pub fn new(cfg: Config) -> Self {
+        Self { cfg, tool_router: Self::tool_router() }
+    }
+
     #[tool(
         description = "Run the speculative pipeline: a cheap draft model attempts the task, an independent confidence gate scores it, and a server-side threshold decides verify vs discard. Returns JSON with draft_id, decision, confidence, reasons, draft, timings, error."
     )]
@@ -156,6 +163,17 @@ impl DspecServer {
         match stats(&self.cfg.data_dir.join("events.jsonl")) {
             Ok(s) => serde_json::to_string(&s).unwrap_or_else(|e| json!({"error": e.to_string()}).to_string()),
             Err(e) => json!({"error": e.to_string()}).to_string(),
+        }
+    }
+}
+
+#[tool_handler]
+impl ServerHandler for DspecServer {
+    fn get_info(&self) -> ServerInfo {
+        ServerInfo {
+            instructions: Some("Speculative draft-then-verify pipeline".into()),
+            capabilities: ServerCapabilities::builder().enable_tools().build(),
+            ..Default::default()
         }
     }
 }

@@ -11,7 +11,7 @@ use rmcp::{transport::stdio, ServiceExt};
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     let cfg = config::Config::from_env();
-    let service = server::DspecServer { cfg }.serve(stdio()).await?;
+    let service = server::DspecServer::new(cfg).serve(stdio()).await?;
     service.waiting().await?;
     Ok(())
 }
