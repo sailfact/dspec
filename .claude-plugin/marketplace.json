@@ -1,6 +1,9 @@
 {
-  "name": "dspec-local",
+  "name": "dspec",
   "owner": { "name": "sailfact" },
+  "metadata": {
+    "description": "DSpark-inspired speculative draft-then-verify pipeline for Claude Code."
+  },
   "plugins": [
     { "name": "dspec", "source": "./" }
   ]

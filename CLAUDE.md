@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-dspec is a Claude Code **plugin**: a slash-command layer (`/spec`, `/spec-stats`) backed by a local Rust MCP server (`server/`). It implements a DSpark-*inspired* (not a true reimplementation of) speculative draft-then-verify workflow: a cheap `claude -p --model haiku` subprocess drafts a task, an independent `haiku` call gates the draft's confidence 0-100, and only drafts above `DSPEC_THRESHOLD` (default 60) get verified/patched by the target model. See [README.md](README.md) for the full rationale, including the "what dspec is *not*" section — don't describe this as distribution-exact or lossless.
+dspec is a Claude Code **plugin**: a slash-command layer (`/spec`, `/spec-stats`) backed by a local Rust MCP server (`server/`). It implements a DSpark-*inspired* (not a true reimplementation of) speculative draft-then-verify workflow: a cheap `claude -p --model sonnet` subprocess drafts a task, an independent `haiku` call gates the draft's confidence 0-100, and only drafts above `DSPEC_THRESHOLD` (default 60) get verified/patched by the target model. See [README.md](README.md) for the full rationale, including the "what dspec is *not*" section — don't describe this as distribution-exact or lossless.
 
 ## Build, test, run
 

@@ -28,8 +28,8 @@ task ──▶ draft model (cheap) ──▶ confidence gate (independent) ─�
                                               confidence ≥ threshold  │  confidence < threshold
                                                        ▼              │            ▼
                                           target model verifies       │      discard draft;
-                                          & patches only the delta     │      target does the
-                                                                       │      task normally
+                                          & patches only the delta    │      target does the
+                                                                      │      task normally
                                                        └──────────────┴──▶ record outcome + telemetry
 ```
 
@@ -37,7 +37,7 @@ The pipeline maps onto DSpark's structure as follows:
 
 | DSpark concept | dspec implementation |
 |---|---|
-| Draft model | `claude -p --model haiku` subprocess producing a full candidate deliverable |
+| Draft model | `claude -p --model sonnet` subprocess producing a full candidate deliverable |
 | Trained per-token confidence head | A second, independent `haiku` call scoring the whole draft 0–100 against a rubric |
 | Discard low-confidence drafts pre-verification | Server-side threshold comparison; discarded drafts never reach the target model |
 | Target verification (rejection sampling) | Target model verify-and-patch prompt: accept verbatim unless demonstrably wrong |
