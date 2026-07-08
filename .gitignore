@@ -20,3 +20,4 @@ debug/
 *.swp
 .idea/
 .vscode/
+test/

@@ -4,26 +4,49 @@ use std::fs::{self, OpenOptions};
 use std::io::Write;
 use std::path::Path;
 
+/// A single telemetry record appended to the JSONL event log.
+///
+/// One `Draft` event is recorded per pipeline run (draft + gate), and one
+/// `Outcome` event is recorded when the caller later reports what happened
+/// to that draft. The two are joined by `id` when computing [`Stats`].
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(tag = "type", rename_all = "lowercase")]
 pub enum Event {
+    /// Recorded once per `draft_task` pipeline run, regardless of outcome.
     Draft {
+        /// Unique identifier for this pipeline run, used to join with a later `Outcome` event.
         id: String,
+        /// Unix timestamp in milliseconds when the event was recorded.
         ts_ms: u64,
+        /// Gate model's confidence score (0-100), or `None` if the gate call failed or its output was unparseable.
         confidence: Option<u8>,
+        /// The pipeline's resulting decision: `"verify"` or `"discard"`.
         decision: String,
+        /// Wall-clock time spent in the draft model call, in milliseconds.
         draft_ms: u64,
+        /// Wall-clock time spent in the gate model call, in milliseconds.
         gate_ms: u64,
+        /// Error message if any stage of the pipeline failed, otherwise `None`.
         error: Option<String>,
     },
+    /// Recorded when the caller reports the final result of a previously drafted task.
     Outcome {
+        /// Identifier matching the `id` of the corresponding `Draft` event.
         id: String,
+        /// Unix timestamp in milliseconds when the event was recorded.
         ts_ms: u64,
+        /// One of the fixed strings "accepted" | "patched" | "rejected" | "discarded" (validated by the caller).
         outcome: String,
+        /// Fraction of the draft that was changed during verification, if applicable (e.g. for "patched" outcomes).
         patch_ratio: Option<f32>,
     },
 }
 
+/// Appends `event` as a single JSON-serialized line to the file at `path`.
+///
+/// Creates the file's parent directories if they don't already exist. This
+/// function only ever appends; it does not read or validate existing file
+/// contents, so pre-existing corrupt lines in the file do not cause it to fail.
 pub fn append(path: &Path, event: &Event) -> std::io::Result<()> {
     if let Some(parent) = path.parent() {
         fs::create_dir_all(parent)?;
@@ -32,18 +55,34 @@ pub fn append(path: &Path, event: &Event) -> std::io::Result<()> {
     writeln!(f, "{}", serde_json::to_string(event).expect("event serializes"))
 }
 
+/// Aggregate telemetry report computed from the joined `Draft`/`Outcome` event log.
+///
+/// Returned by `spec_stats`. Used to judge whether the gate's confidence
+/// scores are well-calibrated: per project convention, `mean_confidence_good`
+/// should exceed `mean_confidence_bad` by at least 10 points.
 #[derive(Debug, Serialize, Default, PartialEq)]
 pub struct Stats {
+    /// Total number of `Draft` events seen.
     pub drafts: u64,
+    /// Number of drafts discarded (gate confidence below threshold, or a pipeline error).
     pub discarded: u64,
+    /// Number of drafts accepted verbatim by the verifying model.
     pub accepted: u64,
+    /// Number of drafts accepted after being patched by the verifying model.
     pub patched: u64,
+    /// Number of drafts rejected by the verifying model.
     pub rejected: u64,
+    /// (accepted + patched) / (accepted + patched + rejected); `None` if that denominator is zero.
     pub verify_acceptance_rate: Option<f32>,
+    /// Mean `patch_ratio` across `Outcome` events that reported one; `None` if none did.
     pub mean_patch_ratio: Option<f32>,
+    /// Mean `draft_ms` across all `Draft` events; `None` if there are none.
     pub mean_draft_ms: Option<f32>,
+    /// Mean `gate_ms` across all `Draft` events; `None` if there are none.
     pub mean_gate_ms: Option<f32>,
+    /// Mean gate confidence of drafts whose outcome was accepted or patched; `None` if there are none.
     pub mean_confidence_good: Option<f32>,
+    /// Mean gate confidence of drafts whose outcome was rejected; `None` if there are none.
     pub mean_confidence_bad: Option<f32>,
 }
 
@@ -55,6 +94,11 @@ fn mean(values: &[f32]) -> Option<f32> {
     }
 }
 
+/// Reads the JSONL event log at `path` and computes the aggregate [`Stats`].
+///
+/// Joins `Draft` and `Outcome` events by `id`. If `path` does not exist,
+/// returns `Ok` with zeroed `Stats` rather than an error. Lines that fail to
+/// parse as an `Event` are skipped silently.
 pub fn stats(path: &Path) -> std::io::Result<Stats> {
     let mut s = Stats::default();
     let content = match fs::read_to_string(path) {
