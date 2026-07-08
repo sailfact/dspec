@@ -6,6 +6,7 @@ Fill this in after running every task in [`tasks/`](tasks/) through `/spec`, the
 - **Date:** _TBD_
 - **Draft model / gate model:** _TBD_ / _TBD_
 - **`DSPEC_THRESHOLD`:** _TBD_
+- **`DSPEC_DATA_DIR`:** _TBD (use a fresh/empty log for this run — see README step 2)_
 
 ## Per-task log
 

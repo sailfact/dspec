@@ -36,14 +36,23 @@ as much as the mechanical tasks — separation needs both ends.
 ## How to run
 
 1. Build the server and load the plugin (see the repo [README](../README.md)).
-2. For each task, open its file and paste the fenced **Prompt** block after `/spec`
+2. **Isolate the telemetry log** so `/spec-stats` reflects only this eval.
+   `spec_stats` reads the entire `<DSPEC_DATA_DIR>/events.jsonl` and joins *every*
+   draft/outcome in it, so a pre-existing log from prior `/spec` use (the default
+   is `~/.dspec/events.jsonl`) would pollute the aggregate and let the calibration
+   verdict pass or fail independently of these ten runs. Before task 01, point the
+   server at a fresh, empty data dir — set `DSPEC_DATA_DIR` to a clean path (e.g.
+   `DSPEC_DATA_DIR=$(mktemp -d)/dspec`) in the plugin's MCP server env, or clear /
+   move the existing log — and confirm `/spec-stats` reports **0 drafts** before
+   you start.
+3. For each task, open its file and paste the fenced **Prompt** block after `/spec`
    — verbatim, including the embedded material. Run one task per fresh session
    where practical, so context from one doesn't bleed into the next.
-3. Follow the `/spec` flow: on `discard` the target does the task normally
+4. Follow the `/spec` flow: on `discard` the target does the task normally
    (outcome `discarded`); on `verify` apply verify-and-patch discipline and record
    `accepted` / `patched` / `rejected`. Each task file's **Grading notes** say what
    a correct draft looks like and when a patch is actually warranted.
-4. After all tasks, run `/spec-stats` and fill in [`RESULTS.md`](RESULTS.md).
+5. After all tasks, run `/spec-stats` and fill in [`RESULTS.md`](RESULTS.md).
 
 ## Success criteria
 
