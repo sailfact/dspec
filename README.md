@@ -175,36 +175,19 @@ The test suite covers config defaults/overrides, gate JSON extraction (clean, pr
 
 ## Calibration eval
 
-Gate calibration is the make-or-break metric. The eval below runs a spread of tasks — from mechanical (should gate high, end accepted/patched) to novel design (should gate low, end discarded/rejected) — and checks that `mean_confidence_good` separates cleanly from `mean_confidence_bad`.
+Gate calibration is the make-or-break metric, so dspec ships a **self-contained**
+eval for it in [`eval/`](eval/). It runs a spread of tasks — from mechanical
+(should gate high, end accepted/patched) to novel design (should gate low, end
+discarded/rejected) — and checks that `mean_confidence_good` separates cleanly
+from `mean_confidence_bad` by **≥10 points**.
 
-> **Fill this in after running the eval.** Run each task through `/spec` (one per fresh session where practical), then `/spec-stats`. **Success criteria:** tasks 1–7 mostly gate ≥60 and end accepted/patched; tasks 8–9 gate low or end rejected; `mean_confidence_good` exceeds `mean_confidence_bad` by **≥10 points**. If calibration fails, iterate the gate rubric wording in `prompts.rs` (a single constant, no structural change) and re-run.
-
-**Eval task set:**
-
-1. Write a `.gitignore` for a Rust cargo workspace. *(mechanical)*
-2. Write rustdoc comments for `telemetry.rs`'s public items. *(mechanical)*
-3. Convert a 20-line JSON object to TOML. *(mechanical)*
-4. Write a conventional commit message for a described diff. *(mechanical)*
-5. Write a systemd unit file with restart-on-failure. *(mechanical)*
-6. Summarize a 100-line README into 5 bullet points. *(mechanical)*
-7. Write a bash one-liner to find the 10 largest files under a directory. *(mechanical)*
-8. Design the module structure for a new directory-sync CLI. *(novel — should gate low)*
-9. Decide between SQLite and JSONL for telemetry and justify. *(judgment — low or verify-with-patches)*
-10. Write property-based tests for `gate::decide`. *(moderately novel)*
-
-**Results:**
-
-| Metric | Value |
-|---|---|
-| Total drafts | _TBD_ |
-| Accepted / Patched / Rejected / Discarded | _TBD_ |
-| Verify-path acceptance rate | _TBD_ |
-| Mean patch ratio | _TBD_ |
-| Mean draft / gate latency (ms) | _TBD_ |
-| `mean_confidence_good` | _TBD_ |
-| `mean_confidence_bad` | _TBD_ |
-| Separation (good − bad) | _TBD_ |
-| **Calibration verdict** | _TBD (≥10 pts = calibrated)_ |
+Every task under [`eval/tasks/`](eval/tasks/) embeds its full `/spec` prompt *and
+all input material* (the source to document, the JSON to convert, the diff, the
+README to summarize, the function to test), so a run is reproducible on any
+checkout and doesn't drift as the code changes. See [`eval/README.md`](eval/README.md)
+for how to run it and [`eval/RESULTS.md`](eval/RESULTS.md) for the results
+template. If calibration fails, iterate the gate rubric wording in `prompts.rs`
+(a single constant, no structural change) and re-run.
 
 ---
 
