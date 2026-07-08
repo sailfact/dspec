@@ -3,7 +3,7 @@ use crate::config::Config;
 use crate::gate::{decide, parse_gate_output, Decision};
 use crate::prompts::{drafter_prompt, gate_prompt};
 use crate::telemetry::{append, stats, Event};
-use rmcp::handler::server::router::tool::ToolRouter;
+
 use rmcp::handler::server::wrapper::Parameters;
 use rmcp::model::{ServerCapabilities, ServerInfo};
 use rmcp::{tool, tool_handler, tool_router, ServerHandler};
@@ -100,7 +100,6 @@ pub async fn run_draft_pipeline(cfg: &Config, task: &str, context: Option<&str>)
 #[derive(Clone)]
 pub struct DspecServer {
     pub cfg: Config,
-    tool_router: ToolRouter<Self>,
 }
 
 #[derive(Debug, Deserialize, JsonSchema)]
@@ -124,7 +123,7 @@ pub struct RecordOutcomeParams {
 #[tool_router]
 impl DspecServer {
     pub fn new(cfg: Config) -> Self {
-        Self { cfg, tool_router: Self::tool_router() }
+        Self { cfg }
     }
 
     #[tool(
@@ -170,11 +169,14 @@ impl DspecServer {
 #[tool_handler]
 impl ServerHandler for DspecServer {
     fn get_info(&self) -> ServerInfo {
-        ServerInfo {
-            instructions: Some("Speculative draft-then-verify pipeline".into()),
-            capabilities: ServerCapabilities::builder().enable_tools().build(),
-            ..Default::default()
-        }
+        let mut info = ServerInfo::new(ServerCapabilities::builder().enable_tools().build());
+        
+        info.server_info.name = "dspec".into();
+        info.server_info.version = "1.0".into();
+        
+        info.instructions = Some("Speculative draft-then-verify pipeline".into());
+        
+        info
     }
 }
 
