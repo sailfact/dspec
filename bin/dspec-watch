@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+# dspec-watch: three-pane tmux dashboard tailing dspec live streams.
+# Works inside an existing tmux session (new window) or standalone
+# (detached session named "dspec").
+set -euo pipefail
+
+DATA_DIR="${DSPEC_DATA_DIR:-$HOME/.dspec}"
+LIVE_DIR="$DATA_DIR/live"
+SESSION="dspec"
+WINDOW="dspec"
+
+if ! command -v tmux >/dev/null 2>&1; then
+  echo "dspec-watch: tmux not found; install tmux (>= 3.1) to use the dashboard" >&2
+  exit 1
+fi
+
+mkdir -p "$LIVE_DIR"
+touch "$LIVE_DIR/draft.log" "$LIVE_DIR/gate.log" "$DATA_DIR/events.jsonl"
+
+DRAFT_CMD="printf '═══ DRAFT ═══\n'; exec tail -n 40 -F '$LIVE_DIR/draft.log'"
+GATE_CMD="printf '═══ GATE ═══\n'; exec tail -n 40 -F '$LIVE_DIR/gate.log'"
+
+if command -v jq >/dev/null 2>&1; then
+  JQ_FILTER='if .type == "draft"
+    then "DRAFT   \(.id)  conf=\(.confidence // "-")  \(.decision)  draft=\(.draft_ms)ms gate=\(.gate_ms)ms\(if .error then "  err=" + .error else "" end)"
+    elif .type == "outcome"
+    then "OUTCOME \(.id)  \(.outcome)\(if .patch_ratio then "  ratio=" + (.patch_ratio|tostring) else "" end)"
+    else empty end'
+  EVENTS_CMD="printf '═══ EVENTS ═══\n'; tail -n 20 -F '$DATA_DIR/events.jsonl' | exec jq --unbuffered -r '$JQ_FILTER'"
+else
+  EVENTS_CMD="printf '═══ EVENTS ═══ (install jq for pretty output)\n'; exec tail -n 20 -F '$DATA_DIR/events.jsonl'"
+fi
+
+build_window() {
+  local win="$1"                                     # pane 0 already runs DRAFT_CMD
+  tmux split-window -h -l '50%' -t "$win" "$GATE_CMD"
+  tmux split-window -v -l 8 -t "$win.0" "$EVENTS_CMD"
+  tmux resize-pane -t "$win.2" -x '100%' 2>/dev/null || true
+  tmux select-pane -t "$win.0"
+}
+
+if [ -n "${TMUX:-}" ]; then
+  win="$(tmux new-window -P -F '#{window_id}' -n "$WINDOW" "$DRAFT_CMD")"
+  build_window "$win"
+  tmux select-window -t "$win"
+else
+  if ! tmux has-session -t "$SESSION" 2>/dev/null; then
+    win="$(tmux new-session -d -P -F '#{window_id}' -s "$SESSION" -n "$WINDOW" "$DRAFT_CMD")"
+    build_window "$win"
+  fi
+  if [ -t 1 ]; then
+    exec tmux attach -t "$SESSION"
+  else
+    echo "dspec dashboard is running detached. Attach with: tmux attach -t $SESSION"
+  fi
+fi

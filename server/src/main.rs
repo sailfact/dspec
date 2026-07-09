@@ -5,6 +5,8 @@ mod gate;
 mod prompts;
 mod server;
 mod telemetry;
+mod stream;
+mod live;
 
 use rmcp::{transport::stdio, ServiceExt};
 
