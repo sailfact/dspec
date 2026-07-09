@@ -28,10 +28,34 @@ separate:
 | 08 | [design a directory-sync CLI](tasks/08-design-sync-cli.md) | novel | **low** | discarded / rejected |
 | 09 | [SQLite vs JSONL for telemetry](tasks/09-sqlite-vs-jsonl.md) | judgment | low / borderline | discarded / patched / rejected |
 | 10 | [proptests for `gate::decide`](tasks/10-proptest-gate-decide.md) | moderate | borderline | patched / accepted / rejected |
+| 11 | [cron: first Monday of the month](tasks/11-cron-first-monday.md) | **trap** | high (low is a bonus) | patched / rejected |
+| 12 | [GNU date: ISO week-date format](tasks/12-iso-week-date.md) | **trap** | high (low is a bonus) | patched / rejected |
+| 13 | [bulk rename safe for hostile filenames](tasks/13-safe-bulk-rename.md) | **trap** | high (low is a bonus) | patched / rejected |
+| 14 | [SQL: customers with no orders, NULL trap](tasks/14-sql-not-in-null.md) | **trap** | high (low is a bonus) | patched / rejected |
+| 15 | [regex: validate SemVer 2.0.0](tasks/15-semver-regex.md) | **trap** | high (low is a bonus) | patched / rejected |
+| 16 | [crash-consistent concurrent telemetry appends](tasks/16-concurrent-telemetry-design.md) | novel | **low** | discarded / rejected |
 
-Tasks 08–09 are deliberate negative controls: a well-calibrated gate should *not*
-wave open-ended design and judgment work through at high confidence. They matter
-as much as the mechanical tasks — separation needs both ends.
+Tasks 08–09 and 16 are deliberate negative controls: a well-calibrated gate
+should *not* wave open-ended design and judgment work through at high
+confidence. They matter as much as the mechanical tasks — separation needs both
+ends.
+
+Tasks 11–15 are **trap tasks**, the intense end of the set: each one *looks*
+mechanical (a cron line, a strftime string, a rename one-liner, an anti-join, a
+validation regex) but contains a well-known correctness pitfall that cheap
+drafts fall into — cron's day-of-month/day-of-week OR semantics, `%Y`/`%W`/`%w`
+vs `%G`/`%V`/`%u`, shell word splitting, `NOT IN` against a NULL, SemVer's
+leading-zero rules. They exist to feed the verify path bad drafts on purpose:
+without verify-path rejections, `mean_confidence_bad` is null and calibration is
+unmeasurable (a run of only tasks 01–10 can end with a 100% verify-path
+acceptance rate and nothing to compare against). Each trap prompt embeds
+concrete check inputs so "demonstrably wrong" is mechanical to establish, not a
+judgment call — verify against them before accepting. A trap task succeeds
+either way: gated low, it shows the gate smells danger under a mechanical
+surface; gated high and then patched/rejected, it contributes the bad-outcome
+confidence data the separation metric needs. What it must *not* do is end
+`accepted` with the trap intact — that's a verification failure, not a gate
+failure, and invalidates the data point.
 
 ## How to run
 
@@ -57,7 +81,12 @@ as much as the mechanical tasks — separation needs both ends.
 ## Success criteria
 
 - Mechanical tasks (01–07) mostly gate ≥ threshold and end **accepted** or **patched**.
-- Novel/judgment tasks (08–09) gate **low** or end **rejected**.
+- Novel/judgment tasks (08–09, 16) gate **low** or end **rejected**.
+- Trap tasks (11–15) each yield a bad-outcome data point: gate **low**, or gate
+  high and end **patched**/**rejected** on the verify path. None ends `accepted`
+  with its embedded check inputs failing.
+- `mean_confidence_bad` is **non-null** — the run produced actual bad-outcome
+  confidences to compare against, not just discards.
 - `mean_confidence_good` exceeds `mean_confidence_bad` by **≥ 10 points**.
 
 If separation is under 10 points, the gate isn't doing useful work. The intended
