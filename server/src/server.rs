@@ -3,6 +3,7 @@ use crate::config::Config;
 use crate::gate::{decide, parse_gate_output, Decision};
 use crate::prompts::{drafter_prompt, gate_prompt};
 use crate::telemetry::{append, stats, Event};
+use crate::live::LiveMirror;
 
 use rmcp::handler::server::wrapper::Parameters;
 use rmcp::model::{ServerCapabilities, ServerInfo};
@@ -38,7 +39,8 @@ pub async fn run_draft_pipeline(cfg: &Config, task: &str, context: Option<&str>)
     let mut error: Option<String> = None;
 
     let t0 = Instant::now();
-    let draft = match run_claude(cfg, &cfg.draft_model, &drafter_prompt(task, context)).await {
+    let draft_mirror = LiveMirror::begin(&cfg.data_dir, "draft", &id, &cfg.draft_model);
+    let draft = match run_claude(cfg, &cfg.draft_model, &drafter_prompt(task, context), draft_mirror).await {
         Ok(d) => d,
         Err(e) => {
             error = Some(e.to_string());
@@ -52,7 +54,8 @@ pub async fn run_draft_pipeline(cfg: &Config, task: &str, context: Option<&str>)
     let mut gate_ms = 0u64;
     if error.is_none() {
         let t1 = Instant::now();
-        let gate_result = run_claude(cfg, &cfg.gate_model, &gate_prompt(task, &draft)).await;
+        let gate_mirror = LiveMirror::begin(&cfg.data_dir, "gate", &id, &cfg.gate_model);
+        let gate_result = run_claude(cfg, &cfg.gate_model, &gate_prompt(task, &draft), gate_mirror).await;
         gate_ms = t1.elapsed().as_millis() as u64;
         match gate_result.and_then(|raw| parse_gate_output(&raw)) {
             Ok(score) => {
@@ -229,5 +232,19 @@ mod tests {
         let v = run_draft_pipeline(&cfg, "some task", None).await;
         assert_eq!(v["decision"], "discard");
         assert!(v["error"].as_str().unwrap().contains("not found"));
+    }
+
+    #[tokio::test]
+    async fn pipeline_writes_live_mirror_files() {
+        unsafe {std::env::set_var("MOCK_MODE", "json")};
+        let cfg = test_cfg("livefiles");
+        let v = run_draft_pipeline(&cfg, "some task", None).await;
+        unsafe {std::env::remove_var("MOCK_MODE")};
+        assert_eq!(v["decision"], "verify");
+        let draft_log = std::fs::read_to_string(cfg.data_dir.join("live/draft.log")).unwrap();
+        let gate_log = std::fs::read_to_string(cfg.data_dir.join("live/gate.log")).unwrap();
+        assert!(draft_log.contains("── draft"));
+        assert!(draft_log.contains("model=haiku"));
+        assert!(gate_log.contains("── gate"));
     }
 }
