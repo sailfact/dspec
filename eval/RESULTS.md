@@ -22,6 +22,12 @@ Fill this in after running every task in [`tasks/`](tasks/) through `/spec`, the
 | 08 | `08-design-sync-cli`      | _TBD_ | _TBD_ | _TBD_ | |
 | 09 | `09-sqlite-vs-jsonl`      | _TBD_ | _TBD_ | _TBD_ | |
 | 10 | `10-proptest-gate-decide` | _TBD_ | _TBD_ | _TBD_ | |
+| 11 | `11-cron-first-monday`    | _TBD_ | _TBD_ | _TBD_ | |
+| 12 | `12-iso-week-date`        | _TBD_ | _TBD_ | _TBD_ | |
+| 13 | `13-safe-bulk-rename`     | _TBD_ | _TBD_ | _TBD_ | |
+| 14 | `14-sql-not-in-null`      | _TBD_ | _TBD_ | _TBD_ | |
+| 15 | `15-semver-regex`         | _TBD_ | _TBD_ | _TBD_ | |
+| 16 | `16-concurrent-telemetry-design` | _TBD_ | _TBD_ | _TBD_ | |
 
 ## Aggregate (`/spec-stats`)
 
