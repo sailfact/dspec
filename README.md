@@ -110,6 +110,16 @@ What happens:
    spec: <decision> conf=<confidence> outcome=<outcome> draft=<draft_ms>ms gate=<gate_ms>ms
    ```
 
+### `/spec-eval [tasks | clean]`
+
+Batch-runs the calibration eval in [`eval/`](eval/) through the `/spec`
+pipeline: `/spec-eval` runs every task, `/spec-eval 1`, `/spec-eval 3 2`, and
+`/spec-eval 3-7` run a selection (in the order given), and `/spec-eval clean`
+wipes the telemetry log (`events.jsonl` and live logs in `DSPEC_DATA_DIR`) so a
+run starts from zero drafts. Each task is graded against its file's grading
+notes and recorded via `record_outcome`, then the run ends with a per-task
+table and the `/spec-stats` calibration verdict.
+
 ### `/spec-stats`
 
 Reports the telemetry conversationally: total drafts, per-outcome counts, verify-path acceptance rate, mean patch ratio, mean draft/gate latency, and — most importantly — **gate calibration**: the mean gate confidence of drafts that ended accepted/patched versus those that ended rejected. If those two numbers aren't separated by a comfortable margin, the gate isn't predictive and the threshold is meaningless.

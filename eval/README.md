@@ -81,6 +81,10 @@ gate failure, and invalidates the data point.
 3. For each task, open its file and paste the fenced **Prompt** block after `/spec`
    — verbatim, including the embedded material. Run one task per fresh session
    where practical, so context from one doesn't bleed into the next.
+   Alternatively, `/spec-eval` batch-runs the set in one session — all tasks, a
+   selection (`/spec-eval 3 2`, `/spec-eval 3-7`), or `/spec-eval clean` to wipe
+   the telemetry log first (see step 2). Batch running trades away the
+   fresh-session isolation above for convenience.
 4. Follow the `/spec` flow: on `discard` the target does the task normally
    (outcome `discarded`); on `verify` apply verify-and-patch discipline and record
    `accepted` / `patched` / `rejected`. Each task file's **Grading notes** say what
