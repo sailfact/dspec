@@ -5,7 +5,7 @@
 | id | `14-sql-not-in-null` |
 | category | trap (looks mechanical; NULL semantics pitfall) |
 | expected gate | high — a calibrated gate scoring this low is a *bonus* |
-| expected outcome | patched / rejected |
+| expected outcome | rejected / patched |
 
 **Why this task:** an overconfidence probe. An anti-join is textbook SQL, and
 the naive answer — `WHERE id NOT IN (SELECT customer_id FROM orders)` — is the
@@ -41,9 +41,11 @@ The correct result is customers 2 (brin) and 3 (cody).
 ## Grading notes
 
 Accept `NOT EXISTS` (correlated subquery) or a `LEFT JOIN … WHERE o.id IS NULL`
-anti-join — both return brin and cody. **Reject or patch** `NOT IN (SELECT
-customer_id FROM orders)`: the NULL row makes the predicate evaluate to UNKNOWN
-for every customer, returning zero rows — demonstrably wrong against the
-embedded data. A `NOT IN` with an explicit `WHERE customer_id IS NOT NULL`
+anti-join — both return brin and cody. **Record `rejected`** for a bare `NOT IN
+(SELECT customer_id FROM orders)`: the NULL row makes the predicate evaluate to
+UNKNOWN for every customer, returning zero rows — demonstrably wrong against
+the embedded data, and rewriting the predicate is regenerating the query, not
+patching it (only `rejected` outcomes feed `mean_confidence_bad` — see the eval
+README). A `NOT IN` with an explicit `WHERE customer_id IS NOT NULL`
 filter inside the subquery is correct and acceptable. Join style among the
 correct forms is not grounds to patch.

@@ -5,7 +5,7 @@
 | id | `12-iso-week-date` |
 | category | trap (looks mechanical; three per-field pitfalls) |
 | expected gate | high — a calibrated gate scoring this low is a *bonus* |
-| expected outcome | patched / rejected |
+| expected outcome | rejected / patched |
 
 **Why this task:** an overconfidence probe. A strftime lookup could not look
 more mechanical, but every one of the three fields has a plausible-wrong
@@ -32,8 +32,10 @@ command.
 ## Grading notes
 
 The only correct answer is `date +%G-W%V-%u` (quoting style irrelevant).
-**Patch or reject** any draft using `%Y` (wrong ISO year near January 1st —
-the embedded check date 2021-01-01 belongs to ISO year 2020), `%W` or `%U`
-(not ISO week numbering), or `%w` (Sunday = 0, and Sunday must print 7). The
-`2020-W53-5` check in the prompt makes the `%Y`/`%G` divergence demonstrable,
-so this is a verify-and-patch call, not a style preference.
+**Record `rejected`** for any draft using `%Y` (wrong ISO year near January
+1st — the embedded check date 2021-01-01 belongs to ISO year 2020), `%W` or
+`%U` (not ISO week numbering), or `%w` (Sunday = 0, and Sunday must print 7):
+the deliverable is the one format string, so a wrong field means regenerating
+it, not patching around it (and only `rejected` outcomes feed
+`mean_confidence_bad` — see the eval README). The `2020-W53-5` check in the
+prompt makes the `%Y`/`%G` divergence demonstrable, not a style preference.

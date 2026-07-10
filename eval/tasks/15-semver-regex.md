@@ -5,7 +5,7 @@
 | id | `15-semver-regex` |
 | category | trap (looks mechanical; edge-case-dense spec) |
 | expected gate | high — a calibrated gate scoring this low is a *bonus* |
-| expected outcome | patched / rejected |
+| expected outcome | rejected / patched |
 
 **Why this task:** an overconfidence probe. "Write a regex for semver" sounds
 like a lookup, and drafts confidently produce something like
@@ -39,8 +39,10 @@ Output only the regex.
 
 The reference is the official SemVer 2.0.0 regex (semver.org); any equivalent
 formulation passing all embedded cases is acceptable verbatim — do not patch for
-group naming, non-capturing groups, or factoring. **Patch or reject** a regex
-that fails any embedded case; the usual draft failures are `\d+` cores that
+group naming, non-capturing groups, or factoring. **Record `rejected`** for a
+regex that fails any embedded case — the regex is the whole deliverable, so
+fixing it means regenerating it (and only `rejected` outcomes feed
+`mean_confidence_bad` — see the eval README); the usual draft failures are `\d+` cores that
 accept `01.0.0`, pre-release classes that accept `1.0.0-01` or empty identifiers
 (`alpha..1`), `\w` classes that accept underscores in build metadata, and
 unanchored patterns that accept `v1.0.0`. Check the cases mechanically before
